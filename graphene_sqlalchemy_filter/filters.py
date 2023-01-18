@@ -587,7 +587,12 @@ class FilterSet(graphene.InputObjectType):
         if column_type is None:
             return GenericScalar
         else:
-            _type = convert_sqlalchemy_type(column_type, sqla_column)
+            # `convert_sqlalchemy_type` expects a type now
+            # - see https://github.com/graphql-python/graphene-sqlalchemy/pull/371
+            #   (Breaking Change: The first argument to converter functions is always a type)
+            if not isinstance(column_type, type):
+                column_type = type(column_type)
+            _type = convert_sqlalchemy_type(column_type, column=sqla_column)
             if inspect.isfunction(_type):
                 return _type()  # only graphene-sqlalchemy>2.2.0
             return _type
